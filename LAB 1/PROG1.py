@@ -82,7 +82,7 @@ if __name__ == "__main__":
     print("4. Most common alphabet character:", char)
     print("   Occurrence count:", count)
 
-    # Q5
+    # Q5.
     nums, mean, median, mode = generaterandomstats()
     print("5. Random Numbers:", nums)
     print("   Mean:", mean)
