@@ -1,5 +1,4 @@
-# === Lab 3 FIXED Solution: Fluency Analytics from Textual Viva Responses ===
-# Handles mixed data types in fluency column
+    
 
 import pandas as pd
 import numpy as np
