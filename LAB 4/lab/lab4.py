@@ -18,7 +18,7 @@ df.dropna(subset=['teacher', 'student', 'fluency'], inplace=True)
 
 # Check if the DataFrame is empty after dropping NA values.
 if df.empty:
-    print("⚠️ Warning: The dataframe from original.csv is empty after cleaning. Skipping A1.")
+    print(" Warning: The dataframe from original.csv is empty after cleaning. Skipping A1.")
 else:
     # Standardize the 'fluency' column for consistency.
     df['fluency'] = df['fluency'].astype(str).str.strip().str.lower()
@@ -60,7 +60,7 @@ else:
         print("\nTrain Classification Report:\n", classification_report(y_train_class, y_pred_train))
         print("Test Classification Report:\n", classification_report(y_test_class, y_pred_test))
     else:
-        print("⚠️ Not enough valid rows in original.csv for A1.")
+        print(" Not enough valid rows in original.csv for A1.")
 
 # === A2: Regression Metrics ===
 df_stock = pd.read_csv("IRCTC Stock Price.csv", encoding="ISO-8859-1", engine="python", on_bad_lines="skip")
@@ -78,7 +78,7 @@ def parse_volume(val):
         return np.nan
 
 if df_stock.empty:
-    print("⚠️ Warning: IRCTC Stock Price.csv is empty. Skipping A2.")
+    print(" Warning: IRCTC Stock Price.csv is empty. Skipping A2.")
 else:
     ## Standardize column names to remove whitespace and convert to lowercase.
     ## This is the most important fix to prevent columns from being missed.
@@ -117,14 +117,14 @@ else:
         mape = mean_absolute_percentage_error(y_test, y_pred)
         r2 = r2_score(y_test, y_pred)
 
-        print("✅ Linear Regression Performance Metrics:")
+        print("Linear Regression Performance Metrics:")
         print(f"MSE  = {mse:.2f}")
         print(f"RMSE = {rmse:.2f}")
         print(f"MAPE = {mape:.4f}")
         print(f"R²   = {r2:.4f}")
 
         coeff_df = pd.DataFrame(model.coef_, index=X.columns, columns=["Coefficient"])
-        print("\n🔍 Feature Coefficients:")
+        print("\n Feature Coefficients:")
         print(coeff_df)
 
         plt.figure(figsize=(10, 6))
@@ -137,7 +137,7 @@ else:
         plt.show()
     else:
         # This warning will now only show if the file is truly empty or lacks valid data.
-        print("⚠️ Not enough valid rows in IRCTC Stock Price.csv for A2 after cleaning.")
+        print(" Not enough valid rows in IRCTC Stock Price.csv for A2 after cleaning.")
 
 # === A3: Generate and Visualize Synthetic Training Data ===
 np.random.seed(0)  # Set a seed for reproducibility of random numbers.
@@ -240,4 +240,4 @@ if not df.empty and len(df) >= 5:
     print(f"\nBest k: {grid.best_params_['n_neighbors']}")
     print(f"Best cross-validation accuracy: {grid.best_score_:.4f}")
 else:
-    print("⚠️ Skipping A7 because not enough project data.")
+    print(" Skipping A7 because not enough project data.")

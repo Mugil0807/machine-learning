@@ -1,5 +1,3 @@
-    
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,7 +11,11 @@ from sklearn.metrics import (
 from scipy.spatial.distance import minkowski
 from sklearn.preprocessing import label_binarize
 import warnings
+import sys
+import codecs
+
 warnings.filterwarnings('ignore')
+sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer)
 
 print("=== FLUENCY ANALYTICS USING k-NN CLASSIFICATION ===\n")
 
