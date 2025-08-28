@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import chardet
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LinearRegression
@@ -20,45 +19,28 @@ warnings.filterwarnings('ignore')
 print("--- 1. Data Loading and Preprocessing ---")
 
 try:
-    # First, detect the file encoding
-    with open('original.csv', 'rb') as file:
-        raw_data = file.read()
-        result = chardet.detect(raw_data)
-        encoding = result['encoding']
+    # Corrected and simplified file loading
+    print("Loading original.csv...")
+    df = pd.read_csv('original.csv',
+                     encoding='latin-1',
+                     engine='python')
+    print("Success: Successfully loaded the file!")
 
-    # Read the CSV file with the detected encoding
-    df = pd.read_csv('original.csv', encoding=encoding)
-    print("Data loaded successfully!")
-    print(f"Dataset shape: {df.shape}")
-except Exception as e:
-    print(f"Error loading the file: {str(e)}")
-    print("Current working directory:", os.getcwd())
-
-# Detect encoding
-try:
-    with open("original.csv", "rb") as f:
-        raw_data = f.read()
-        detect_result = chardet.detect(raw_data)
-        detected_encoding = detect_result["encoding"]
-        print(f"Detected file encoding: {detected_encoding}")
 except FileNotFoundError:
-    print("Error: 'original.csv' not found. Please make sure the file is in the correct directory.")
+    print("Error: 'original.csv' not found. Please make sure the file is in the same directory as your Python script.")
+    exit()
+except Exception as e:
+    print(f"Error: An unexpected error occurred: {e}")
     exit()
 
-# Load the dataset with detected encoding
-try:
-    df = pd.read_csv("original.csv", encoding=detected_encoding)
-    print("Dataset loaded successfully.")
-    print(f"Original shape: {df.shape}")
-except Exception as e:
-    print(f"Error loading file with encoding '{detected_encoding}': {e}")
-    print("Trying with 'latin1' encoding...")
-    df = pd.read_csv("original.csv", encoding="latin1")
-    print(f"Loaded successfully with 'latin1' encoding. Shape: {df.shape}")
 
 # Define values to be treated as NaN
 na_values = ['NA', 'É........', 'É....(NA)', 'É.......(NA)', '...']
 df.replace(na_values, np.nan, inplace=True)
+
+# Clean column names
+df.columns = df.columns.str.strip()
+
 
 # Drop rows with missing values in crucial columns
 df.dropna(subset=['teacher', 'student', 'fluency'], inplace=True)
@@ -68,10 +50,11 @@ print(f"Shape after dropping NaNs: {df.shape}")
 df['text'] = df['teacher'].astype(str) + ' ' + df['student'].astype(str)
 
 # Encode the target variable 'fluency' into numerical format
+# Using a dictionary for explicit mapping
 fluency_mapping = {'Low': 0, 'Medium': 1, 'High': 2}
 df['fluency_encoded'] = df['fluency'].map(fluency_mapping)
 
-# Drop rows where mapping resulted in NaN
+# Drop rows where mapping resulted in NaN (e.g., if 'fluency' had other values)
 df.dropna(subset=['fluency_encoded'], inplace=True)
 df['fluency_encoded'] = df['fluency_encoded'].astype(int)
 
@@ -92,6 +75,7 @@ print("-" * 50)
 def calculate_metrics(y_true, y_pred, dataset_name):
     mse = mean_squared_error(y_true, y_pred)
     rmse = np.sqrt(mse)
+    # Added a small epsilon to avoid division by zero for MAPE
     mape = np.mean(np.abs((y_true - y_pred) / (y_true + 1e-8))) * 100
     r2 = r2_score(y_true, y_pred)
 
@@ -142,12 +126,13 @@ for k in k_values:
 
 fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 15), sharex=True)
 ax1.plot(k_values, silhouette_scores, 'bo-')
-ax1.set_ylabel('Silhouette')
+ax1.set_title('Clustering Performance Metrics vs. k')
+ax1.set_ylabel('Silhouette Score (Higher is better)')
 ax2.plot(k_values, ch_scores, 'go-')
-ax2.set_ylabel('Calinski-Harabasz')
+ax2.set_ylabel('Calinski-Harabasz Score (Higher is better)')
 ax3.plot(k_values, db_scores, 'ro-')
-ax3.set_xlabel('k')
-ax3.set_ylabel('Davies-Bouldin')
+ax3.set_xlabel('Number of clusters (k)')
+ax3.set_ylabel('Davies-Bouldin Score (Lower is better)')
 plt.show()
 
 # --- A7 ---
@@ -158,8 +143,7 @@ for k in range(2, 20):
     distortions.append(km.inertia_)
 plt.figure(figsize=(10, 6))
 plt.plot(range(2, 20), distortions, 'bx-')
-plt.xlabel('k')
-plt.ylabel('Inertia')
-plt.title('Elbow Method')
+plt.xlabel('Number of clusters (k)')
+plt.ylabel('Inertia (Sum of squared distances)')
+plt.title('Elbow Method for Optimal k')
 plt.show()
-

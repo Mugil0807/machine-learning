@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import chardet
+from io import StringIO
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LinearRegression
@@ -19,42 +20,48 @@ warnings.filterwarnings('ignore')
 # --- Data Loading and Preprocessing ---
 print("--- 1. Data Loading and Preprocessing ---")
 
+# Try to load the CSV file
 try:
-    # First, detect the file encoding
-    with open('original.csv', 'rb') as file:
-        raw_data = file.read()
-        result = chardet.detect(raw_data)
-        encoding = result['encoding']
-
-    # Read the CSV file with the detected encoding
-    df = pd.read_csv('original.csv', encoding=encoding)
-    print("Data loaded successfully!")
+    print("Loading CSV file...")
+    # Create a clean version of the file first
+    clean_lines = []
+    with open('lab/original.csv', 'r', encoding='cp1252', errors='replace') as file:
+        # Read header
+        header = file.readline().strip()
+        clean_lines.append(header)
+        
+        # Read remaining lines and clean them
+        for line in file:
+            # Replace any problematic characters
+            clean_line = line.strip().replace('\x00', '')
+            if clean_line:  # Only add non-empty lines
+                clean_lines.append(clean_line)
+    
+    # Join lines and create a string buffer
+    clean_content = '\n'.join(clean_lines)
+    
+    # Read the cleaned content with pandas
+    df = pd.read_csv(StringIO(clean_content),
+                    engine='python',
+                    sep=',',
+                    skipinitialspace=True,
+                    quoting=1,  # QUOTE_ALL
+                    quotechar='"',
+                    on_bad_lines='skip')
+    
+    print("Successfully loaded the file!")
     print(f"Dataset shape: {df.shape}")
+    print("\nFirst few rows:")
+    print(df.head())
+    
+    print("Successfully loaded the file!")
+    print(f"Dataset shape: {df.shape}")
+    print("\nFirst few rows:")
+    print(df.head())
 except Exception as e:
-    print(f"Error loading the file: {str(e)}")
+    print(f"Error loading file: {str(e)}")
     print("Current working directory:", os.getcwd())
-
-# Detect encoding
-try:
-    with open("original.csv", "rb") as f:
-        raw_data = f.read()
-        detect_result = chardet.detect(raw_data)
-        detected_encoding = detect_result["encoding"]
-        print(f"Detected file encoding: {detected_encoding}")
-except FileNotFoundError:
-    print("Error: 'original.csv' not found. Please make sure the file is in the correct directory.")
-    exit()
-
-# Load the dataset with detected encoding
-try:
-    df = pd.read_csv("original.csv", encoding=detected_encoding)
-    print("Dataset loaded successfully.")
-    print(f"Original shape: {df.shape}")
-except Exception as e:
-    print(f"Error loading file with encoding '{detected_encoding}': {e}")
-    print("Trying with 'latin1' encoding...")
-    df = pd.read_csv("original.csv", encoding="latin1")
-    print(f"Loaded successfully with 'latin1' encoding. Shape: {df.shape}")
+    raise
 
 # Define values to be treated as NaN
 na_values = ['NA', 'É........', 'É....(NA)', 'É.......(NA)', '...']
