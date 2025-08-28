@@ -12,14 +12,14 @@ import statistics
 import warnings
 warnings.filterwarnings('ignore')
 
-excel_file = 'Lab Session Data.xlsx'
-xls = pd.ExcelFile("Lab Session Data.xlsx")
+lab_data_file = 'Lab Session Data.csv'
+irctc_file = 'IRCTC Stock Price.csv'
+thyroid_file = 'thyroid0387_UCI.csv'
 
 
 # A1: Linear Algebra Analysis
 def analyze_linear_system():
-    df = pd.read_excel(excel_file, sheet_name='Purchase data')
-    print(xls.sheet_names)
+    df = pd.read_csv(lab_data_file)
     print(df.columns.tolist())
     A = df[['Candies (#)', 'Mangoes (Kg)', 'Milk Packets (#)']].values
     C = df['Payment (Rs)'].values
@@ -32,7 +32,9 @@ def analyze_linear_system():
 
 # A2: Customer Classification
 def classify_customers():
-    df = pd.read_excel(excel_file, sheet_name='Purchase data')
+    # Read CSV and clean up extra columns
+    df = pd.read_csv(lab_data_file)
+    df = df.iloc[:, :5]  # Keep only the first 5 columns
     df['Class'] = df['Payment (Rs)'].apply(lambda x: 'RICH' if x > 200 else 'POOR')
     X = df[['Candies (#)', 'Mangoes (Kg)', 'Milk Packets (#)']].values
     y = df['Class'].values
@@ -45,22 +47,26 @@ def classify_customers():
 
 # A3: Stock Price Analysis
 def analyze_stock_data():
-    df = pd.read_excel(excel_file, sheet_name='IRCTC Stock Price')
+    df = pd.read_csv(irctc_file)
+    # Convert Price and Chg% to numeric, removing any currency symbols and commas
+    df['Price'] = pd.to_numeric(df['Price'].str.replace('₹', '').str.replace(',', ''), errors='coerce')
+    df['Chg%'] = pd.to_numeric(df['Chg%'].str.replace('%', ''), errors='coerce')
+    
     df['Date'] = pd.to_datetime(df['Date'])
     df['DayOfWeek'] = df['Date'].dt.day_name()
-    mean_price = statistics.mean(df['Price'])
-    var_price = statistics.variance(df['Price'])
+    mean_price = statistics.mean(df['Price'].tolist())
+    var_price = statistics.variance(df['Price'].tolist())
     wed = df[df['DayOfWeek'] == 'Wednesday']
     apr = df[df['Date'].dt.month == 4]
-    wed_mean = statistics.mean(wed['Price'])
-    apr_mean = statistics.mean(apr['Price'])
+    wed_mean = statistics.mean(wed['Price'].tolist())
+    apr_mean = statistics.mean(apr['Price'].tolist())
     prob_loss = (df['Chg%'] < 0).mean()
     prob_profit_wed = (wed['Chg%'] > 0).mean()
     return df, mean_price, var_price, wed_mean, apr_mean, prob_loss, prob_profit_wed
 
 # A4: Data Exploration
 def explore_thyroid_data():
-    df = pd.read_excel(excel_file, sheet_name='thyroid0387_UCI')
+    df = pd.read_csv(thyroid_file)
     types = {col: 'Categorical' if df[col].dtype == 'object' else 'Numerical' for col in df.columns}
     missing = df.isnull().sum()
     outliers = {}
@@ -74,7 +80,7 @@ def explore_thyroid_data():
 
 # A5: Similarity Measures
 def calculate_similarity_measures():
-    df = pd.read_excel(excel_file, sheet_name='thyroid0387_UCI')
+    df = pd.read_csv(thyroid_file)
     bin_df = df.select_dtypes(include='number').fillna(0).astype(int)
     v1 = bin_df.iloc[0].astype(bool).astype(int).values
     v2 = bin_df.iloc[1].astype(bool).astype(int).values
@@ -88,7 +94,7 @@ def calculate_similarity_measures():
 
 # A6: Cosine Similarity
 def calculate_cosine_similarity():
-    df = pd.read_excel(excel_file, sheet_name='thyroid0387_UCI')
+    df = pd.read_csv(thyroid_file)
     num_df = df.select_dtypes(include='number').fillna(0)
     v1 = num_df.iloc[0].values
     v2 = num_df.iloc[1].values
@@ -98,7 +104,7 @@ def calculate_cosine_similarity():
 
 # A7: Heatmap Plot
 def create_similarity_heatmap():
-    df = pd.read_excel(excel_file, sheet_name='thyroid0387_UCI')
+    df = pd.read_csv(thyroid_file)
     bin_df = df.select_dtypes(include='number').fillna(0).astype(bool).astype(int)
     data = bin_df.iloc[:20].values
     n = data.shape[0]
@@ -121,7 +127,7 @@ def create_similarity_heatmap():
 
 # A8: Data Imputation
 def impute_missing_values():
-    df = pd.read_excel(excel_file, sheet_name='thyroid0387_UCI')
+    df = pd.read_csv(thyroid_file)
     for col in df.select_dtypes(include='number').columns:
         if df[col].isnull().sum() > 0:
             if df[col].skew() < 1:
@@ -135,7 +141,7 @@ def impute_missing_values():
 
 # A9: Data Normalization
 def normalize_data():
-    df = pd.read_excel(excel_file, sheet_name='thyroid0387_UCI')
+    df = pd.read_csv(thyroid_file)
     num_df = df.select_dtypes(include='number').fillna(0)
     scaler_std = StandardScaler()
     scaler_mm = MinMaxScaler()
@@ -146,7 +152,7 @@ def normalize_data():
 
 # Optional O1: Use two square matrices and compare X values
 def optional_square_matrix_experiments():
-    df = pd.read_excel(excel_file, sheet_name='Purchase data')
+    df = pd.read_csv(lab_data_file)
     full_A = df[['Candies (#)', 'Mangoes (Kg)', 'Milk Packets (#)']].values
     C = df['Payment (Rs)'].values
 
@@ -164,7 +170,7 @@ def optional_square_matrix_experiments():
 # Optional O2: Random sample analysis for A5-A6
 
 def optional_random_sampling_analysis(sample_size=20, random_state=42):
-    df = pd.read_excel(excel_file, sheet_name='thyroid0387_UCI')
+    df = pd.read_csv(thyroid_file)
     sampled_df = df.sample(n=sample_size, random_state=random_state)
     bin_df = sampled_df.select_dtypes(include='number').fillna(0).astype(bool).astype(int)
     num_df = sampled_df.select_dtypes(include='number').fillna(0)
@@ -186,7 +192,7 @@ def optional_random_sampling_analysis(sample_size=20, random_state=42):
 # Optional O3: Apply thyroid-style analysis to marketing_campaign
 
 def optional_marketing_campaign_analysis():
-    df = pd.read_excel(excel_file, sheet_name='marketing_campaign')
+    df = pd.read_csv('marketing_campaign.csv')
     data_types = {col: 'Categorical' if df[col].dtype == 'object' else 'Numerical' for col in df.columns}
     missing = df.isnull().sum()
     stats = df.describe(include='all')
